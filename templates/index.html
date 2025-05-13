@@ -6,5 +6,16 @@
         <input type="text" name="query" placeholder="Search..." />
         <button type="submit">Go</button>
     </form>
+    {% if results %}
+<h2>Results for "{{ query }}"</h2>
+<ul>
+    {% for result in results %}
+    <li>
+        <strong>{{ result.source }}</strong>: 
+        <a href="{{ result.link }}" target="_blank">{{ result.title }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 </body>
 </html>
