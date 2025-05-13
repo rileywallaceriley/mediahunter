@@ -9,8 +9,17 @@
         <h1>Media Hunter</h1>
 
         <form action="/search" method="get" class="search-form">
-            <input type="text" name="query" placeholder="Search for music, comics, books..." required>
-            <button type="submit">Go</button>
+            <input type="text" name="query" placeholder="Search..." required />
+
+            <div class="filters">
+                <label><input type="checkbox" name="source" value="archive" checked> Archive</label>
+                <label><input type="checkbox" name="source" value="youtube" checked> YouTube</label>
+                <label><input type="checkbox" name="source" value="spotify" checked> Spotify</label>
+                <label><input type="checkbox" name="source" value="torrents" checked> Torrents</label>
+                <label><input type="checkbox" name="source" value="comics" checked> Comic Sites</label>
+            </div>
+
+            <button type="submit">Search</button>
         </form>
 
         {% if query %}
