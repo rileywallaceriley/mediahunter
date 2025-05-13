@@ -19,13 +19,14 @@ def search():
         return render_template("index.html", results=[], query="")
 
     headers = {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "en-US,en;q=0.9"
     }
 
     # Archive.org
     if "archive" in selected_sources:
         try:
-            archive_url = f"https://archive.org/advancedsearch.php"
+            archive_url = "https://archive.org/advancedsearch.php"
             params = {
                 "q": f"{query} AND (mediatype:(texts) OR mediatype:(audio) OR collection:(comics))",
                 "fl[]": "identifier,title",
@@ -40,8 +41,8 @@ def search():
                     "source": "Internet Archive",
                     "link": f"https://archive.org/details/{doc.get('identifier')}"
                 })
-        except:
-            pass
+        except Exception as e:
+            print("Archive error:", e)
 
     # YouTube via Bing
     if "youtube" in selected_sources:
@@ -57,21 +58,20 @@ def search():
                     "source": "YouTube",
                     "link": a['href']
                 })
-        except:
-            pass
+        except Exception as e:
+            print("YouTube error:", e)
 
-    # Spotify (share links)
+    # Spotify
     if "spotify" in selected_sources:
         try:
             encoded = urllib.parse.quote(query)
-            link = f"https://open.spotify.com/search/{encoded}"
             results.append({
                 "title": f"Search Spotify for: {query}",
                 "source": "Spotify",
-                "link": link
+                "link": f"https://open.spotify.com/search/{encoded}"
             })
-        except:
-            pass
+        except Exception as e:
+            print("Spotify error:", e)
 
     # 1337x.to
     if "torrents" in selected_sources:
@@ -95,8 +95,8 @@ def search():
                             "source": "1337x",
                             "link": magnet['href']
                         })
-        except:
-            pass
+        except Exception as e:
+            print("1337x error:", e)
 
     # Pirate Bay
     if "torrents" in selected_sources:
@@ -114,41 +114,41 @@ def search():
                         "source": "Pirate Bay",
                         "link": parent['href']
                     })
-        except:
-            pass
+        except Exception as e:
+            print("Pirate Bay error:", e)
 
     # GetComics
     if "comics" in selected_sources:
         try:
             encoded = urllib.parse.quote(query)
             url = f"https://getcomics.org/?s={encoded}"
-            res = requests.get(url, headers=headers)
+            res = requests.get(url, headers=headers, timeout=10)
             soup = BeautifulSoup(res.text, "html.parser")
-            posts = soup.select("h2.post-title a")[:5]
+            posts = soup.select("h3.post-title a")[:5]
             for a in posts:
                 results.append({
                     "title": a.text.strip(),
                     "source": "GetComics",
                     "link": a['href']
                 })
-        except:
-            pass
+        except Exception as e:
+            print("GetComics error:", e)
 
     # Comics.codes
     if "comics" in selected_sources:
         try:
             encoded = urllib.parse.quote(query)
             url = f"https://comics.codes/?s={encoded}"
-            res = requests.get(url, headers=headers)
+            res = requests.get(url, headers=headers, timeout=10)
             soup = BeautifulSoup(res.text, "html.parser")
-            posts = soup.select("h2 a")[:5]
+            posts = soup.select("h2.entry-title a")[:5]
             for a in posts:
                 results.append({
                     "title": a.text.strip(),
                     "source": "Comics.codes",
                     "link": a['href']
                 })
-        except:
-            pass
+        except Exception as e:
+            print("Comics.codes error:", e)
 
     return render_template("index.html", results=results, query=query)
