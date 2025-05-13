@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head><title>Media Hunter</title></head>
+<head>
+    <title>Media Hunter</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
 <body>
-    <form action="/search">
-        <input type="text" name="query" placeholder="Search..." />
-        <button type="submit">Go</button>
-    </form>
-    {% if results %}
-<h2>Results for "{{ query }}"</h2>
-<ul>
-    {% for result in results %}
-    <li>
-        <strong>{{ result.source }}</strong>: 
-        <a href="{{ result.link }}" target="_blank">{{ result.title }}</a>
-    </li>
-    {% endfor %}
-</ul>
-{% endif %}
+    <div class="container">
+        <h1>Media Hunter</h1>
+
+        <form action="/search" method="get" class="search-form">
+            <input type="text" name="query" placeholder="Search for music, comics, books..." required>
+            <button type="submit">Go</button>
+        </form>
+
+        {% if query %}
+        <h2>Results for "{{ query }}"</h2>
+        <div class="results">
+            {% for result in results %}
+            <div class="result-card">
+                <div class="source">{{ result.source }}</div>
+                <a href="{{ result.link }}" target="_blank">{{ result.title }}</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>
