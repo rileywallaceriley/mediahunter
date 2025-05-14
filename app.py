@@ -5,9 +5,31 @@ import urllib.parse
 
 app = Flask(__name__)
 
+# === Spotify Auth ===
+def get_spotify_token(client_id, client_secret):
+    token_url = "https://accounts.spotify.com/api/token"
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    data = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret
+    }
+    res = requests.post(token_url, headers=headers, data=data)
+    return res.json().get("access_token")
+
+SPOTIFY_CLIENT_ID = "fa347236d6da48d6881d909b4bbd4858"
+SPOTIFY_CLIENT_SECRET = "5ff148a6bf594e1fa7399007a3d03022"
+
+# === YouTube API Key ===
+YOUTUBE_API_KEY = "AIzaSyBtjRHCHffqpOqwvWNf0oxJXpcrdU4QbuQ"
+
+# === Jackett Config ===
+JACKETT_API_URL = "https://your-jackett-url/api/v2.0/indexers/all/results/torznab/api"
+JACKETT_API_KEY = "YOUR_JACKETT_KEY"
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
 @app.route('/search')
 def search():
@@ -15,15 +37,53 @@ def search():
     selected_sources = request.args.getlist("source")
     results = []
 
-    if not query:
-        return render_template("index.html", results=[], query="")
-
     headers = {
         "User-Agent": "Mozilla/5.0",
         "Accept-Language": "en-US,en;q=0.9"
     }
 
-    # Archive.org
+    # === Spotify Search ===
+    if "spotify" in selected_sources:
+        try:
+            token = get_spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
+            spotify_headers = {"Authorization": f"Bearer {token}"}
+            url = f"https://api.spotify.com/v1/search?q={urllib.parse.quote(query)}&type=track,album&limit=5"
+            res = requests.get(url, headers=spotify_headers)
+            items = res.json().get("tracks", {}).get("items", [])
+            for item in items:
+                results.append({
+                    "title": f"{item['name']} — {item['artists'][0]['name']}",
+                    "source": "Spotify",
+                    "link": item['external_urls']['spotify']
+                })
+        except Exception as e:
+            print("Spotify error:", e)
+
+    # === YouTube API Search ===
+    if "youtube" in selected_sources:
+        try:
+            yt_url = f"https://www.googleapis.com/youtube/v3/search"
+            params = {
+                "part": "snippet",
+                "q": query,
+                "type": "video",
+                "maxResults": 5,
+                "key": YOUTUBE_API_KEY
+            }
+            res = requests.get(yt_url, params=params)
+            for item in res.json().get("items", []):
+                video_id = item["id"]["videoId"]
+                title = item["snippet"]["title"]
+                link = f"https://www.youtube.com/watch?v={video_id}"
+                results.append({
+                    "title": title,
+                    "source": "YouTube",
+                    "link": link
+                })
+        except Exception as e:
+            print("YouTube error:", e)
+
+    # === Archive.org ===
     if "archive" in selected_sources:
         try:
             archive_url = "https://archive.org/advancedsearch.php"
@@ -44,85 +104,30 @@ def search():
         except Exception as e:
             print("Archive error:", e)
 
-    # YouTube via Bing
-    if "youtube" in selected_sources:
+    # === Jackett (Torrent) ===
+    if "torrents" in selected_sources:
         try:
-            encoded = urllib.parse.quote(query + " site:youtube.com")
-            bing_url = f"https://www.bing.com/search?q={encoded}"
-            res = requests.get(bing_url, headers=headers)
-            soup = BeautifulSoup(res.text, "html.parser")
-            links = soup.select("li.b_algo h2 a")[:5]
-            for a in links:
+            url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
+            res = requests.get(url, headers=headers)
+            soup = BeautifulSoup(res.content, "xml")
+            items = soup.find_all("item")[:5]
+            for item in items:
+                title = item.find("title").text
+                link = item.find("link").text
+                tracker = item.find("jackettindexer").text if item.find("jackettindexer") else "Jackett"
                 results.append({
-                    "title": a.text,
-                    "source": "YouTube",
-                    "link": a['href']
+                    "title": title,
+                    "source": tracker,
+                    "link": link
                 })
         except Exception as e:
-            print("YouTube error:", e)
+            print("Jackett error:", e)
 
-    # Spotify
-    if "spotify" in selected_sources:
-        try:
-            encoded = urllib.parse.quote(query)
-            results.append({
-                "title": f"Search Spotify for: {query}",
-                "source": "Spotify",
-                "link": f"https://open.spotify.com/search/{encoded}"
-            })
-        except Exception as e:
-            print("Spotify error:", e)
-
-    # 1337x.to
-    if "torrents" in selected_sources:
-        try:
-            encoded = urllib.parse.quote(query)
-            url = f"https://1337x.to/search/{encoded}/1/"
-            res = requests.get(url, headers=headers)
-            soup = BeautifulSoup(res.text, "html.parser")
-            rows = soup.select("tr")[:5]
-            for row in rows:
-                a = row.find("a", href=True)
-                if a and "/torrent/" in a['href']:
-                    title = a.text.strip()
-                    page_link = "https://1337x.to" + a['href']
-                    torrent_page = requests.get(page_link, headers=headers)
-                    sub_soup = BeautifulSoup(torrent_page.text, "html.parser")
-                    magnet = sub_soup.find("a", href=True, title="Magnet Download")
-                    if magnet:
-                        results.append({
-                            "title": title,
-                            "source": "1337x",
-                            "link": magnet['href']
-                        })
-        except Exception as e:
-            print("1337x error:", e)
-
-    # Pirate Bay
-    if "torrents" in selected_sources:
-        try:
-            encoded = urllib.parse.quote(query)
-            url = f"https://thepiratebay0.org/search/{encoded}/1/99/0"
-            res = requests.get(url, headers=headers)
-            soup = BeautifulSoup(res.text, "html.parser")
-            rows = soup.select("div.detName a")[:5]
-            for a in rows:
-                parent = a.find_parent("div", class_="detName").find_next_sibling("a", title="Download this torrent using magnet")
-                if parent:
-                    results.append({
-                        "title": a.text.strip(),
-                        "source": "Pirate Bay",
-                        "link": parent['href']
-                    })
-        except Exception as e:
-            print("Pirate Bay error:", e)
-
-    # GetComics
+    # === GetComics ===
     if "comics" in selected_sources:
         try:
-            encoded = urllib.parse.quote(query)
-            url = f"https://getcomics.org/?s={encoded}"
-            res = requests.get(url, headers=headers, timeout=10)
+            search_url = f"https://getcomics.org/?s={urllib.parse.quote(query)}"
+            res = requests.get(search_url, headers=headers, timeout=10)
             soup = BeautifulSoup(res.text, "html.parser")
             posts = soup.select("h3.post-title a")[:5]
             for a in posts:
@@ -134,12 +139,11 @@ def search():
         except Exception as e:
             print("GetComics error:", e)
 
-    # Comics.codes
+    # === Comics.codes ===
     if "comics" in selected_sources:
         try:
-            encoded = urllib.parse.quote(query)
-            url = f"https://comics.codes/?s={encoded}"
-            res = requests.get(url, headers=headers, timeout=10)
+            search_url = f"https://comics.codes/?s={urllib.parse.quote(query)}"
+            res = requests.get(search_url, headers=headers, timeout=10)
             soup = BeautifulSoup(res.text, "html.parser")
             posts = soup.select("h2.entry-title a")[:5]
             for a in posts:
