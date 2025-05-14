@@ -3,22 +3,21 @@
 <head>
     <title>Media Hunter</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" type="image/x-icon" href="/static/mediahunter_favicon.ico">
 </head>
 <body>
     <div class="container">
+        <img src="/static/mediahunter_header.png" alt="Media Hunter Logo" style="max-width: 100%; margin-bottom: 20px;">
         <h1>Media Hunter</h1>
 
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search..." required />
-
             <div class="filters">
                 <label><input type="checkbox" name="source" value="youtube" checked> YouTube</label>
                 <label><input type="checkbox" name="source" value="spotify" checked> Spotify</label>
                 <label><input type="checkbox" name="source" value="torrents" checked> Torrents</label>
                 <label><input type="checkbox" name="source" value="archive" checked> Archive.org</label>
-                <label><input type="checkbox" name="source" value="comics" checked> Comic Sites</label>
             </div>
-
             <button type="submit">Search</button>
         </form>
 
