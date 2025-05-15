@@ -12,10 +12,11 @@ body {
 }
 
 .logo img {
-    max-width: 60%;
-    height: auto;
+    max-width: 300px;
+    max-height: 80px;
     display: block;
     margin: 0 auto 20px auto;
+    height: auto;
 }
 
 h1 {
