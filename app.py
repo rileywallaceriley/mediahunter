@@ -5,7 +5,6 @@ import urllib.parse
 
 app = Flask(__name__)
 
-# === Spotify Auth ===
 def get_spotify_token(client_id, client_secret):
     token_url = "https://accounts.spotify.com/api/token"
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -19,13 +18,10 @@ def get_spotify_token(client_id, client_secret):
 
 SPOTIFY_CLIENT_ID = "fa347236d6da48d6881d909b4bbd4858"
 SPOTIFY_CLIENT_SECRET = "5ff148a6bf594e1fa7399007a3d03022"
-
-# === YouTube API Key ===
 YOUTUBE_API_KEY = "AIzaSyBtjRHCHffqpOqwvWNf0oxJXpcrdU4QbuQ"
 
-# === Jackett Config ===
-JACKETT_API_URL = "https://your-jackett-url/api/v2.0/indexers/all/results/torznab/api"
-JACKETT_API_KEY = "YOUR_JACKETT_KEY"
+JACKETT_API_URL = "https://jackett-render-dwvc.onrender.com/api/v2.0/indexers/all/results/torznab/api"
+JACKETT_API_KEY = "fmun9rw0nnqay7uirntmrc12qgapdq3c"
 
 @app.route('/')
 def home():
@@ -42,7 +38,6 @@ def search():
         "Accept-Language": "en-US,en;q=0.9"
     }
 
-    # === Spotify Search ===
     if "spotify" in selected_sources:
         try:
             token = get_spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
@@ -59,10 +54,9 @@ def search():
         except Exception as e:
             print("Spotify error:", e)
 
-    # === YouTube API Search ===
     if "youtube" in selected_sources:
         try:
-            yt_url = f"https://www.googleapis.com/youtube/v3/search"
+            yt_url = "https://www.googleapis.com/youtube/v3/search"
             params = {
                 "part": "snippet",
                 "q": query,
@@ -83,7 +77,6 @@ def search():
         except Exception as e:
             print("YouTube error:", e)
 
-    # === Archive.org ===
     if "archive" in selected_sources:
         try:
             archive_url = "https://archive.org/advancedsearch.php"
@@ -104,7 +97,6 @@ def search():
         except Exception as e:
             print("Archive error:", e)
 
-    # === Jackett (Torrent) ===
     if "torrents" in selected_sources:
         try:
             url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
@@ -122,37 +114,5 @@ def search():
                 })
         except Exception as e:
             print("Jackett error:", e)
-
-    # === GetComics ===
-    if "comics" in selected_sources:
-        try:
-            search_url = f"https://getcomics.org/?s={urllib.parse.quote(query)}"
-            res = requests.get(search_url, headers=headers, timeout=10)
-            soup = BeautifulSoup(res.text, "html.parser")
-            posts = soup.select("h3.post-title a")[:5]
-            for a in posts:
-                results.append({
-                    "title": a.text.strip(),
-                    "source": "GetComics",
-                    "link": a['href']
-                })
-        except Exception as e:
-            print("GetComics error:", e)
-
-    # === Comics.codes ===
-    if "comics" in selected_sources:
-        try:
-            search_url = f"https://comics.codes/?s={urllib.parse.quote(query)}"
-            res = requests.get(search_url, headers=headers, timeout=10)
-            soup = BeautifulSoup(res.text, "html.parser")
-            posts = soup.select("h2.entry-title a")[:5]
-            for a in posts:
-                results.append({
-                    "title": a.text.strip(),
-                    "source": "Comics.codes",
-                    "link": a['href']
-                })
-        except Exception as e:
-            print("Comics.codes error:", e)
 
     return render_template("index.html", results=results, query=query)
