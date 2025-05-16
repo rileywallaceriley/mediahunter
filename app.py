@@ -38,6 +38,7 @@ def search():
         "Accept-Language": "en-US,en;q=0.9"
     }
 
+    # Spotify Search
     if "spotify" in selected_sources:
         try:
             token = get_spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
@@ -54,6 +55,7 @@ def search():
         except Exception as e:
             print("Spotify error:", e)
 
+    # YouTube Search
     if "youtube" in selected_sources:
         try:
             yt_url = "https://www.googleapis.com/youtube/v3/search"
@@ -77,6 +79,7 @@ def search():
         except Exception as e:
             print("YouTube error:", e)
 
+    # Archive.org Search
     if "archive" in selected_sources:
         try:
             archive_url = "https://archive.org/advancedsearch.php"
@@ -97,6 +100,7 @@ def search():
         except Exception as e:
             print("Archive error:", e)
 
+    # Jackett Torrent Search — No category filter
     if "torrents" in selected_sources:
         try:
             url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
