@@ -47,7 +47,7 @@ button[type="submit"],
     border-radius: 5px;
     margin: 5px;
     cursor: pointer;
-    background-color: #1db954;
+    background-color: #2e2e2e;
     color: white;
     transition: background-color 0.3s ease;
 }
@@ -57,7 +57,7 @@ button[type="submit"],
 }
 
 .result-button:hover {
-    background-color: #14833b;
+    background-color: #444;
 }
 
 .result-button.copy:hover {
