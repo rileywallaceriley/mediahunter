@@ -117,12 +117,14 @@ def search():
                 items = items[:limit_val]
             for item in items:
                 title = item.find("title").text
-                link = item.find("link").text
+                public_link = item.find("comments").text if item.find("comments") else item.find("link").text
+                magnet_link = item.find("link").text if "magnet:?" in item.find("link").text else None
                 tracker = item.find("jackettindexer").text if item.find("jackettindexer") else "Jackett"
                 results.append({
                     "title": title,
                     "source": tracker,
-                    "link": link
+                    "link": public_link,
+                    "magnet": magnet_link
                 })
         except Exception as e:
             print("Jackett error:", e)
