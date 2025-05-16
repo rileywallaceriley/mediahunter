@@ -31,6 +31,8 @@ def home():
 def search():
     query = request.args.get('query')
     selected_sources = request.args.getlist("source")
+    selected_categories = request.args.getlist("cat")
+    limit = request.args.get("limit", "5")
     results = []
 
     headers = {
@@ -38,7 +40,6 @@ def search():
         "Accept-Language": "en-US,en;q=0.9"
     }
 
-    # Spotify Search
     if "spotify" in selected_sources:
         try:
             token = get_spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
@@ -55,7 +56,6 @@ def search():
         except Exception as e:
             print("Spotify error:", e)
 
-    # YouTube Search
     if "youtube" in selected_sources:
         try:
             yt_url = "https://www.googleapis.com/youtube/v3/search"
@@ -79,7 +79,6 @@ def search():
         except Exception as e:
             print("YouTube error:", e)
 
-    # Archive.org Search
     if "archive" in selected_sources:
         try:
             archive_url = "https://archive.org/advancedsearch.php"
@@ -100,22 +99,18 @@ def search():
         except Exception as e:
             print("Archive error:", e)
 
-    # Jackett Torrent Search — Debug version
     if "torrents" in selected_sources:
         try:
+            category_param = ",".join(selected_categories) if selected_categories else None
+            limit_val = None if limit == "all" else int(limit)
             url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
+            if category_param:
+                url += f"&cat={category_param}"
             res = requests.get(url, headers=headers)
-
-            # Debug: print the raw XML response from Jackett
-            print("Jackett XML preview:")
-            print(res.content[:1000])  # log first 1000 characters
-
             soup = BeautifulSoup(res.content, "xml")
             items = soup.find_all("item")
-
-            if not items:
-                print("No torrent items found in the XML.")
-
+            if limit_val:
+                items = items[:limit_val]
             for item in items:
                 title = item.find("title").text
                 link = item.find("link").text
