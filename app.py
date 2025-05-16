@@ -83,26 +83,6 @@ def search():
         except Exception as e:
             print("YouTube error:", e)
 
-    if "archive" in selected_sources:
-        try:
-            archive_url = "https://archive.org/advancedsearch.php"
-            params = {
-                "q": f"{query} AND (mediatype:(texts) OR mediatype:(audio) OR collection:(comics))",
-                "fl[]": "identifier,title",
-                "rows": 10,
-                "page": 1,
-                "output": "json"
-            }
-            res = requests.get(archive_url, params=params, timeout=10)
-            for doc in res.json()['response']['docs']:
-                results.append({
-                    "title": doc.get("title"),
-                    "source": "Internet Archive",
-                    "link": f"https://archive.org/details/{doc.get('identifier')}"
-                })
-        except Exception as e:
-            print("Archive error:", e)
-
     if "torrents" in selected_sources:
         try:
             category_param = ",".join(selected_categories) if selected_categories else None
