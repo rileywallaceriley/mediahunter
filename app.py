@@ -32,7 +32,9 @@ def search():
     query = request.args.get('query')
     selected_sources = request.args.getlist("source")
     selected_categories = request.args.getlist("cat")
-    limit = request.args.get("limit", "5")
+    torrent_limit = request.args.get("limit", "5")
+    yt_limit = request.args.get("yt_limit", "5")
+    sp_limit = request.args.get("sp_limit", "5")
     results = []
 
     headers = {
@@ -44,7 +46,8 @@ def search():
         try:
             token = get_spotify_token(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
             spotify_headers = {"Authorization": f"Bearer {token}"}
-            url = f"https://api.spotify.com/v1/search?q={urllib.parse.quote(query)}&type=track,album&limit=5"
+            limit_val = 50 if sp_limit == "all" else int(sp_limit)
+            url = f"https://api.spotify.com/v1/search?q={urllib.parse.quote(query)}&type=track,album&limit={limit_val}"
             res = requests.get(url, headers=spotify_headers)
             items = res.json().get("tracks", {}).get("items", [])
             for item in items:
@@ -59,11 +62,12 @@ def search():
     if "youtube" in selected_sources:
         try:
             yt_url = "https://www.googleapis.com/youtube/v3/search"
+            max_val = 50 if yt_limit == "all" else int(yt_limit)
             params = {
                 "part": "snippet",
                 "q": query,
                 "type": "video",
-                "maxResults": 5,
+                "maxResults": max_val,
                 "key": YOUTUBE_API_KEY
             }
             res = requests.get(yt_url, params=params)
@@ -102,7 +106,7 @@ def search():
     if "torrents" in selected_sources:
         try:
             category_param = ",".join(selected_categories) if selected_categories else None
-            limit_val = None if limit == "all" else int(limit)
+            limit_val = None if torrent_limit == "all" else int(torrent_limit)
             url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
             if category_param:
                 url += f"&cat={category_param}"
