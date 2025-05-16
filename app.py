@@ -100,13 +100,22 @@ def search():
         except Exception as e:
             print("Archive error:", e)
 
-    # Jackett Torrent Search — No category filter
+    # Jackett Torrent Search — Debug version
     if "torrents" in selected_sources:
         try:
             url = f"{JACKETT_API_URL}?apikey={JACKETT_API_KEY}&q={urllib.parse.quote(query)}"
             res = requests.get(url, headers=headers)
+
+            # Debug: print the raw XML response from Jackett
+            print("Jackett XML preview:")
+            print(res.content[:1000])  # log first 1000 characters
+
             soup = BeautifulSoup(res.content, "xml")
             items = soup.find_all("item")[:5]
+
+            if not items:
+                print("No torrent items found in the XML.")
+
             for item in items:
                 title = item.find("title").text
                 link = item.find("link").text
