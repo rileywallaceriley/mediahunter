@@ -1,99 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Media Hunter</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="icon" type="image/x-icon" href="/static/mediahunter_favicon.ico">
-</head>
-<body>
-    <div class="container">
-        <div class="logo">
-            <img src="/static/mediahunter_header.png" alt="Media Hunter Logo">
-        </div>
-        <h1>Media Hunter</h1>
-
-        <form action="/search" method="get" class="search-form">
-            <input type="text" name="query" placeholder="Search..." required />
-
-            <div class="filters">
-                <label><input type="checkbox" name="source" value="youtube" id="youtubeBox"> YouTube</label>
-                <label><input type="checkbox" name="source" value="spotify" id="spotifyBox"> Spotify</label>
-                <label><input type="checkbox" name="source" value="archive"> Archive.org</label>
-                <label><input type="checkbox" name="source" value="torrents" id="torrentCheckbox"> Torrents</label>
-            </div>
-
-            <div id="youtubeOptions" style="display: none;">
-                <strong>YouTube Result Limit:</strong>
-                <label><input type="radio" name="yt_limit" value="5" checked> 5</label>
-                <label><input type="radio" name="yt_limit" value="20"> 20</label>
-                <label><input type="radio" name="yt_limit" value="all"> All</label>
-            </div>
-
-            <div id="spotifyOptions" style="display: none;">
-                <strong>Spotify Result Limit:</strong>
-                <label><input type="radio" name="sp_limit" value="5" checked> 5</label>
-                <label><input type="radio" name="sp_limit" value="20"> 20</label>
-                <label><input type="radio" name="sp_limit" value="all"> All</label>
-            </div>
-
-            <div id="torrentOptions" style="display: none;">
-                <strong>Categories:</strong><br>
-                <label><input type="checkbox" name="cat" value="2000"> Movies</label>
-                <label><input type="checkbox" name="cat" value="5000"> TV</label>
-                <label><input type="checkbox" name="cat" value="3000"> Music</label>
-                <label><input type="checkbox" name="cat" value="7000"> Books</label>
-                <br><br><strong>Torrent Limit:</strong>
-                <label><input type="radio" name="limit" value="5" checked> 5</label>
-                <label><input type="radio" name="limit" value="20"> 20</label>
-                <label><input type="radio" name="limit" value="all"> All</label>
-            </div>
-
-            <br><button type="submit">Search</button>
-        </form>
-
-        {% if query %}
-        <h2>Results for "{{ query }}"</h2>
-        <div class="results">
-            {% for result in results %}
-            <div class="result-card">
-                <div class="source">{{ result.source }}</div>
-                <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
-                {% if 'Spotify' in result.source %}
-                    <a href="{{ result.link }}" target="_blank" class="result-button">Listen Now</a>
-                    <button class="result-button copy" onclick="copyToClipboard('{{ result.link }}')">Copy Link</button>
-                {% elif 'YouTube' in result.source %}
-                    <a href="{{ result.link }}" target="_blank" class="result-button">Watch Now</a>
-                    <button class="result-button copy" onclick="copyToClipboard('{{ result.link }}')">Copy Link</button>
-                {% elif 'Jackett' in result.source or '1337x' in result.source or 'Torlock' in result.source %}
-                    <a href="{{ result.link }}" target="_blank" class="result-button">Open Torrent</a>
-                    <button class="result-button copy" onclick="copyToClipboard('{{ result.link }}')">Copy Magnet Link</button>
-                {% else %}
-                    <a href="{{ result.link }}" target="_blank" class="result-button">Open</a>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
+{% for result in results %}
+<div class="result-card">
+    <div class="source">{{ result.source }}</div>
+    <a href="{{ result.link }}" target="_blank">{{ result.title }}</a>
+    <div style="margin-top: 10px;">
+        {% if result.source == 'Spotify' %}
+            <a href="{{ result.link }}" target="_blank" class="result-button">Listen Now</a>
+            <button class="result-button copy" onclick="copyToClipboard('{{ result.link }}')">Copy Link</button>
+        {% elif result.source == 'YouTube' %}
+            <a href="{{ result.link }}" target="_blank" class="result-button">Watch Now</a>
+            <button class="result-button copy" onclick="copyToClipboard('{{ result.link }}')">Copy Link</button>
+        {% elif 'Jackett' in result.source or '1337x' in result.source or 'Torlock' in result.source %}
+            <a href="{{ result.link }}" target="_blank" class="result-button">Go to Torrent</a>
+            {% if result.magnet %}
+            <button class="result-button copy" onclick="copyToClipboard('{{ result.magnet }}')">Copy Magnet Link</button>
+            {% endif %}
+        {% else %}
+            <a href="{{ result.link }}" target="_blank" class="result-button">Open</a>
         {% endif %}
     </div>
-
-    <script>
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Link copied to clipboard!");
-            });
-        }
-
-        document.getElementById("torrentCheckbox").addEventListener("change", function() {
-            document.getElementById("torrentOptions").style.display = this.checked ? "block" : "none";
-        });
-
-        document.getElementById("youtubeBox").addEventListener("change", function() {
-            document.getElementById("youtubeOptions").style.display = this.checked ? "block" : "none";
-        });
-
-        document.getElementById("spotifyBox").addEventListener("change", function() {
-            document.getElementById("spotifyOptions").style.display = this.checked ? "block" : "none";
-        });
-    </script>
-</body>
-</html>
+</div>
+{% endfor %}
