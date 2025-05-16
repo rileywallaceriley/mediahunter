@@ -111,7 +111,7 @@ def search():
             print(res.content[:1000])  # log first 1000 characters
 
             soup = BeautifulSoup(res.content, "xml")
-            items = soup.find_all("item")[:5]
+            items = soup.find_all("item")
 
             if not items:
                 print("No torrent items found in the XML.")
