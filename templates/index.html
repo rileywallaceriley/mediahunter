@@ -10,15 +10,33 @@
         <div class="logo">
             <img src="/static/mediahunter_header.png" alt="Media Hunter Logo">
         </div>
+        <h1>Media Hunter</h1>
 
         <form action="/search" method="get" class="search-form">
             <input type="text" name="query" placeholder="Search..." required />
+
             <div class="filters">
-                <label><input type="checkbox" name="source" value="youtube" checked> YouTube</label>
-                <label><input type="checkbox" name="source" value="spotify" checked> Spotify</label>
-                <label><input type="checkbox" name="source" value="torrents" checked> Torrents</label>
-                <label><input type="checkbox" name="source" value="archive" checked> Archive.org</label>
+                <label><input type="checkbox" name="source" value="youtube"> YouTube</label>
+                <label><input type="checkbox" name="source" value="spotify"> Spotify</label>
+                <label><input type="checkbox" name="source" value="archive"> Archive.org</label>
+                <label>
+                    <input type="checkbox" name="source" value="torrents" id="torrentCheckbox"> Torrents
+                </label>
             </div>
+
+            <div id="torrentOptions" style="display: none; text-align: center; margin-top: 10px;">
+                <strong>Categories:</strong><br>
+                <label><input type="checkbox" name="cat" value="2000"> Movies</label>
+                <label><input type="checkbox" name="cat" value="5000"> TV</label>
+                <label><input type="checkbox" name="cat" value="3000"> Music</label>
+                <label><input type="checkbox" name="cat" value="7000"> Books</label>
+
+                <br><br><strong>Result Limit:</strong><br>
+                <label><input type="radio" name="limit" value="5" checked> 5</label>
+                <label><input type="radio" name="limit" value="20"> 20</label>
+                <label><input type="radio" name="limit" value="all"> All</label>
+            </div>
+
             <button type="submit">Search</button>
         </form>
 
@@ -34,5 +52,12 @@
         </div>
         {% endif %}
     </div>
+
+    <script>
+    document.getElementById("torrentCheckbox").addEventListener("change", function() {
+        const options = document.getElementById("torrentOptions");
+        options.style.display = this.checked ? "block" : "none";
+    });
+    </script>
 </body>
 </html>
