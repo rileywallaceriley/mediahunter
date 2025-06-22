@@ -21,7 +21,7 @@ SPOTIFY_CLIENT_SECRET = "5ff148a6bf594e1fa7399007a3d03022"
 YOUTUBE_API_KEY = "AIzaSyBtjRHCHffqpOqwvWNf0oxJXpcrdU4QbuQ"
 
 JACKETT_API_URL = "https://jackett-render-dwvc.onrender.com/api/v2.0/indexers/all/results/torznab/api"
-JACKETT_API_KEY = "7sv7q9wlcs0cxkibmsrpnoeaznevxbki"
+JACKETT_API_KEY = "ha4czkrot1v1v0qblrlk0lwem58iyigw"
 
 @app.route('/')
 def home():
